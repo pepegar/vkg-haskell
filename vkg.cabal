@@ -22,4 +22,5 @@ executable vkg
     aeson >= 0.8.0,
     aeson-pretty >= 0.6,
     text >= 1.2.1,
-    bytestring >= 0.10.6
+    bytestring >= 0.10.6,
+    process >= 1.2.3

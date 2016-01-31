@@ -13,6 +13,8 @@ import Control.Applicative ((<$>), (<*>))
 import Data.Aeson 
 import Data.Aeson.Encode.Pretty
 import Data.Text (Text, pack)
+import System.Process
+import System.IO
 
 
 -- TYPES && INSTANCES
@@ -43,9 +45,8 @@ instance ToJSON Plugin where
 
 -- HELPER FUNCTIONS
 
-
 deleteDotAndDotDot :: [String] -> [String]
-deleteDotAndDotDot strings = filter (\p -> p /= "." && p /= "..") strings
+deleteDotAndDotDot = filter (\p -> p /= "." && p /= "..")
 
 getInstalledPlugins :: IO [String]
 getInstalledPlugins = do
@@ -61,7 +62,14 @@ getJsonString :: [String] -> String
 getJsonString pluginPaths = let
     plugins = PluginList { pluginList = map toPlugin pluginPaths }
     in show $ encodePretty plugins
-    
+
+
+getRepoUrl :: String -> String -> IO String
+getRepoUrl basePath name = do
+    (_, Just handle, _, _) <- createProcess (proc "git" ["config", "--get", "remote.origin.url"]) {
+        cwd = Just $ basePath ++ "/.vim/bundle/" ++ name,
+        std_out = CreatePipe}
+    hGetContents handle
 
 
 -- COMMANDS
@@ -70,18 +78,19 @@ help :: [String] -> IO ()
 help _ = putStrLn "help"
 
 
--- list all plugins in the plugin
+-- list all plugins in the bundle directory
 list :: [String] -> IO ()
 list _ = do
     plugins <- getInstalledPlugins
     mapM_ putStrLn
         $ deleteDotAndDotDot plugins
 
-
 freeze :: [String] -> IO ()
 freeze _ = do
-    plugins <- getInstalledPlugins
-    putStrLn $ read $ getJsonString $ deleteDotAndDotDot plugins
+    home <- getHomeDirectory
+    pluginNames <- getInstalledPlugins
+    githubRepos <- sequence $ map (getRepoUrl home) pluginNames
+    putStrLn $ read $ getJsonString githubRepos
 
 
 install :: [String] -> IO ()

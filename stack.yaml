@@ -1,5 +1,5 @@
 flags: {}
 packages:
 - '.'
-extra-deps: []
+extra-deps: [cabal-helper-0.6.1.0, pure-cdb-0.1.1]
 resolver: lts-3.5
