@@ -58,11 +58,11 @@ toPlugin :: String -> Plugin
 toPlugin path = Plugin{repository = pack path, branch = "master"}
 
 
-data Mode = Pretty
+data PrintingMode = Pretty
           | Normal
 
 
-getJsonString :: Mode -> [String] -> String
+getJsonString :: PrintingMode -> [String] -> String
 getJsonString Pretty pluginPaths = let
     plugins = PluginList { pluginList = map toPlugin pluginPaths }
     in show $ encodePretty plugins
@@ -92,17 +92,24 @@ list _ = do
     mapM_ putStrLn
         $ deleteDotAndDotDot plugins
 
-getMode :: String -> Mode
-getMode "--pretty" = Pretty
-getMode _ = Normal
+getPrintingMode :: String -> PrintingMode
+getPrintingMode "--pretty" = Pretty
+getPrintingMode _ = Normal
 
 freeze :: [String] -> IO ()
+freeze [] = do
+    githubRepos <- getGithubRepos
+    putStrLn $ read $ getJsonString Normal githubRepos
 freeze params = do
-    let mode = getMode $ params !! 0
+    let mode = getPrintingMode $ params !! 0
+    githubRepos <- getGithubRepos
+    putStrLn $ read $ getJsonString mode githubRepos
+
+getGithubRepos :: IO [String]
+getGithubRepos = do
     home <- getHomeDirectory
     pluginNames <- getInstalledPlugins
-    githubRepos <- sequenceA $ map (getRepoUrl home) pluginNames
-    putStrLn $ read $ getJsonString mode githubRepos
+    sequenceA $ map (getRepoUrl home) pluginNames
 
 
 install :: [String] -> IO ()
