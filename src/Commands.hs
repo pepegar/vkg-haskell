@@ -58,10 +58,17 @@ toPlugin :: String -> Plugin
 toPlugin path = Plugin{repository = pack path, branch = "master"}
 
 
-getJsonString :: [String] -> String
-getJsonString pluginPaths = let
+data Mode = Pretty
+          | Normal
+
+
+getJsonString :: Mode -> [String] -> String
+getJsonString Pretty pluginPaths = let
     plugins = PluginList { pluginList = map toPlugin pluginPaths }
     in show $ encodePretty plugins
+getJsonString Normal pluginPaths = let
+    plugins = PluginList { pluginList = map toPlugin pluginPaths }
+    in show $ encode plugins
 
 
 getRepoUrl :: String -> String -> IO String
@@ -85,12 +92,17 @@ list _ = do
     mapM_ putStrLn
         $ deleteDotAndDotDot plugins
 
+getMode :: String -> Mode
+getMode "--pretty" = Pretty
+getMode _ = Normal
+
 freeze :: [String] -> IO ()
-freeze _ = do
+freeze params = do
+    let mode = getMode $ params !! 0
     home <- getHomeDirectory
     pluginNames <- getInstalledPlugins
     githubRepos <- sequenceA $ map (getRepoUrl home) pluginNames
-    putStrLn $ read $ getJsonString githubRepos
+    putStrLn $ read $ getJsonString mode githubRepos
 
 
 install :: [String] -> IO ()
