@@ -26,7 +26,7 @@ instance FromJSON PluginList where
     parseJSON _ = mzero
 
 instance ToJSON PluginList where
-    toJSON (PluginList pluginList) = object ["plugins" .= pluginList]
+    toJSON (PluginList pl) = object ["plugins" .= pl]
 
 data Plugin = Plugin
     { repository :: Text
@@ -40,7 +40,7 @@ instance FromJSON Plugin where
     parseJSON _ = mzero
 
 instance ToJSON Plugin where
-    toJSON (Plugin repository branch) = object ["repository" .= repository, "branch" .= branch]
+    toJSON (Plugin r b) = object ["repository" .= r, "branch" .= b]
 
 
 -- HELPER FUNCTIONS
