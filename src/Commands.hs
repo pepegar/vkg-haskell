@@ -10,7 +10,7 @@ module Commands
 import System.Directory (getHomeDirectory, getDirectoryContents)
 import Control.Monad (mzero)
 import Control.Applicative ((<$>), (<*>))
-import Data.Aeson 
+import Data.Aeson
 import Data.Aeson.Encode.Pretty
 import Data.Text (Text, pack)
 import System.Process
@@ -89,7 +89,7 @@ freeze :: [String] -> IO ()
 freeze _ = do
     home <- getHomeDirectory
     pluginNames <- getInstalledPlugins
-    githubRepos <- sequence $ map (getRepoUrl home) pluginNames
+    githubRepos <- sequenceA $ map (getRepoUrl home) pluginNames
     putStrLn $ read $ getJsonString githubRepos
 
 
